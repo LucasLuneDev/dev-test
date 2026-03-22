@@ -4,7 +4,7 @@ export const NAVIGATION_PATH = {
     DASHBOARD: {
         ROOT: "/",
     },
-    
+
     AUTH: {
         ROOT: "auth",
         SIGN_IN: {
@@ -26,7 +26,10 @@ export const NAVIGATION_PATH = {
             RELATIVE: "criar",
             ABSOLUTE: "/clientes/criar"
         },
-        
+        EDIT: {
+            RELATIVE: "editar/:id",
+            ABSOLUTE: "/clientes/editar/:id"
+        },
     }
 }
 

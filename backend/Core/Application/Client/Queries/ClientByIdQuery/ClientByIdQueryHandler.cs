@@ -30,6 +30,7 @@ namespace Application.Client.Queries.ClientByIdQuery
                     Email = x.Email,
                     PhoneNumber = x.PhoneNumber,
                     DocumentNumber = x.DocumentNumber,
+                    BirthDate = x.BirthDate,
                     Address = new Models.AddressModel
                     {
                         PostalCode = x.Address.PostalCode,

@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { mountRoute } from "@/utils/mountRoute";
 import Loader from "@/components/Loader";
 import ClientService from "@/services/ClientService";
+import { TextFormFieldType } from "@/components/form/TextFormField/TextFormFieldType";
+import { ClientFilter } from "@/types/api/filters/ClientFilter";
 
 const ClientListing = () => {
     const navigate = useNavigate();
@@ -31,22 +33,48 @@ const ClientListing = () => {
                 </Card.Title>
             </Card.Header>
             <Suspense fallback={<><Loader /><br /><br /></>}>
-                <DataTable<Client, any>
+                <DataTable<Client, ClientFilter>
                     thin
                     columns={[
-                        
+
                         { Header: "Nome", accessor: "firstName" },
                         { Header: "Sobrenome", accessor: "lastName" },
                         { Header: "Email", accessor: "email" },
                         { Header: "Telefone", accessor: "phoneNumber" },
                         { Header: "Documento", accessor: "documentNumber" },
+                        {
+                            Header: "Ações",
+                            accessor: "id",
+                            Cell: ({ row }: any) => (
+                                <CrudActions
+                                    cell={row.original}
+                                    actions={[
+                                        {
+                                            type: ActionItemType.EDIT,
+                                            handler: async (cell: Client) => {
+                                                navigate(mountRoute(NAVIGATION_PATH.CLIENTS.EDIT.ABSOLUTE, { id: cell.id as string }));
+                                            }
+                                        }
+                                    ]}
+                                />
+                            )
+                        }
                     ]}
                     query={async (filters) => {
-                        return await ClientService.getAll();
+                        const documentFilter = filters.find(f => f.name === "document")?.value as string;
+                        return await ClientService.getAll(documentFilter);
                     }}
                     fetchButton
                     cleanButton
-                    filters={[]}
+                    filters={[
+                        {
+                            name: "document",
+                            label: "Filtrar por Documento",
+                            componentType: TextFormFieldType.INPUT,
+                            placeholder: "Digite o CPF ou CNPJ",
+                            col: 10,
+                        }
+                    ]}
                     queryName={["client", "listing", date]}
                 />
             </Suspense>

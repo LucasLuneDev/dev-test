@@ -29,7 +29,7 @@ export const routes = createBrowserRouter([
         errorElement: <Page500 />,
         Component: SplashScreenLayout
     },
-    
+
     {
         path: NAVIGATION_PATH.CLIENTS.ROOT,
         element: <AuthGuard belongsTo={[UserProfile.Administrator]}><DashboardLayout /></AuthGuard>,
@@ -37,7 +37,7 @@ export const routes = createBrowserRouter([
         children: [
             { path: NAVIGATION_PATH.CLIENTS.LISTING.RELATIVE, Component: lazy(() => import("@/pages/clients/ClientListing")) },
             { path: NAVIGATION_PATH.CLIENTS.CREATE.RELATIVE, Component: lazy(() => import("@/pages/clients/ClientForm")) },
-            
+            { path: NAVIGATION_PATH.CLIENTS.EDIT.RELATIVE, Component: lazy(() => import("@/pages/clients/ClientForm")) },
         ]
     },
     {

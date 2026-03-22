@@ -1,6 +1,8 @@
 ﻿using Application.Client.Commands.CreateClient;
 using Application.Client.Queries.AllClientsQuery;
 using Application.Client.Queries.ClientByIdQuery;
+using Application.Client.Queries.ClientByDocumentQuery;
+using Application.Client.Commands.UpdateClient;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,10 +33,25 @@ namespace WebApi.Controllers
             return Ok(response);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClientCommandRequest request)
+        {
+            request.Id = id;
+            await _mediator.Send(request);
+            return NoContent();
+        }
+
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<AllClientsQueryResponse>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ListAll()
+        public async Task<IActionResult> ListAll(
+        [FromQuery] string document)
         {
+            if (!string.IsNullOrWhiteSpace(document))
+            {
+                var filtered = await _mediator.Send(new ClientByDocumentQueryRequest { Document = document });
+                return Ok(filtered);
+            }
+
             var response = await _mediator.Send(new AllClientsQueryRequest());
             return Ok(response);
         }

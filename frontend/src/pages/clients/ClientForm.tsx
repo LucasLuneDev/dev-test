@@ -1,5 +1,5 @@
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { NAVIGATION_PATH } from "@/constants";
 import { Client } from "@/types/api/Client";
 import { TextFormFieldType } from "@/components/form/TextFormField/TextFormFieldType";
@@ -21,6 +21,7 @@ const INITIAL_VALUES: Client = {
   phoneNumber: "",
   email: "",
   documentNumber: "",
+  birthDate: "",
   address: {
     postalCode: "",
     addressLine: "",
@@ -38,6 +39,7 @@ const schemaValidation = yup.object().shape({
   phoneNumber: yup.string().required("Telefone é obrigatório"),
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
   documentNumber: yup.string().required("Documento é obrigatório"),
+  birthDate: yup.string().required("Data de nascimento é obrigatória"),
   address: yup.object().shape({
     postalCode: yup.string().required("CEP é obrigatório"),
     addressLine: yup.string().required("Endereço é obrigatório"),
@@ -49,13 +51,21 @@ const schemaValidation = yup.object().shape({
 });
 
 const ClientForm = () => {
-  const navigate = useNavigate();
-  
+  const navigate = useNavigate(); const { id } = useParams<{ id: string }>();
 
   const { data } = useSuspenseQuery<Client>({
-    queryKey: [ReactQueryKeys.CLIENT],
+    queryKey: [ReactQueryKeys.CLIENT, id],
     meta: {
       fetchFn: async () => {
+        if (id) {
+          const client = await ClientService.getById(id);
+
+          if (client.birthDate) {
+            client.birthDate = client.birthDate.split("T")[0].split("-").reverse().join("/");
+          }
+
+          return client;
+        }
         return INITIAL_VALUES;
       },
     },
@@ -66,21 +76,28 @@ const ClientForm = () => {
       const clientToSave: Client = {
         ...values,
         phoneNumber: values.phoneNumber.replace(/\D/g, ''),
+        birthDate: values.birthDate.includes("/") ? values.birthDate.split("/").reverse().join("-") : values.birthDate,
         address: {
           ...values.address,
           postalCode: values.address.postalCode.replace(/\D/g, ''),
         },
       };
 
-      await ClientService.create(clientToSave);
-      toastr({ title: "Cliente criado com sucesso", icon: "success" });
+      if (id) {
+        await ClientService.update(id, clientToSave);
+        toastr({ title: "Cliente atualizado com sucesso", icon: "success" });
+      } else {
+        await ClientService.create(clientToSave);
+        toastr({ title: "Cliente criado com sucesso", icon: "success" });
+      }
+
       navigate(NAVIGATION_PATH.CLIENTS.LISTING.ABSOLUTE);
     } catch (err: any) {
       toastr({ title: "Erro", text: err.message, icon: "error" });
     }
   }
 
-  const title = "Novo Cliente";
+  const title = id ? "Editar Cliente" : "Novo Cliente";
 
   return (
     <React.Fragment>
@@ -173,6 +190,19 @@ const ClientForm = () => {
                         handleChange={handleChange}
                         value={values.documentNumber}
                         formikError={errors.documentNumber}
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <TextFormField
+                        componentType={TextFormFieldType.DATE_PICKER}
+                        name="birthDate"
+                        label="Data de Nascimento"
+                        required
+                        placeholderText="DD/MM/YYYY"
+                        handleBlur={handleBlur}
+                        handleChange={handleChange}
+                        value={values.birthDate}
+                        formikError={errors.birthDate}
                       />
                     </Col>
                   </Row>
