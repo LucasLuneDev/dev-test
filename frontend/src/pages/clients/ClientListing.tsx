@@ -12,6 +12,7 @@ import { errorHandling } from "@/utils/errorHandling";
 import ClientService from "@/services/ClientService";
 import { TextFormFieldType } from "@/components/form/TextFormField/TextFormFieldType";
 import { ClientFilter } from "@/types/api/filters/ClientFilter";
+import { format } from "@/helpers/format";
 
 const ClientListing = () => {
     const navigate = useNavigate();
@@ -73,8 +74,8 @@ const ClientListing = () => {
                         { Header: "Nome", accessor: "firstName" },
                         { Header: "Sobrenome", accessor: "lastName" },
                         { Header: "Email", accessor: "email" },
-                        { Header: "Telefone", accessor: "phoneNumber" },
-                        { Header: "Documento", accessor: "documentNumber" },
+                        { Header: "Telefone", accessor: "phoneNumber", Cell: ({value}: any) => format.toPhone(value) },
+                        { Header: "Documento", accessor: "documentNumber", Cell: ({value}: any) => format.toDocument(value) },
                         {
                             Header: "Ações",
                             accessor: "id",

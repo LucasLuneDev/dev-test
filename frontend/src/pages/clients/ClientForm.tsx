@@ -12,6 +12,7 @@ import ViacepService from "@/services/ViacepService";
 import { handlePhoneNumberChange } from "@/helpers/handlePhoneNumberChange";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ReactQueryKeys } from "@/constants/ReactQueryKeys";
+import { format } from "@/helpers/format";
 import yup from "@/utils/yup";
 import React, { Suspense } from "react";
 import { Button, Card, Col, Form, Row } from "react-bootstrap";
@@ -42,7 +43,7 @@ const schemaValidation = yup.object().shape({
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
   documentNumber: yup.string()
     .required("Documento é obrigatório")
-    .max(14, "O documento deve ter no máximo 14 dígitos"),
+    .test('max-digits', 'O documento deve ter no máximo 14 dígitos', val => (val || '').replace(/\D/g, '').length <= 14),
   birthDate: yup.string().required("Data de nascimento é obrigatória"),
   address: yup.object().shape({
     postalCode: yup.string().required("CEP é obrigatório"),
@@ -70,6 +71,12 @@ const ClientForm = () => {
 
           if (client.birthDate) {
             client.birthDate = client.birthDate.split("T")[0].split("-").reverse().join("/");
+          }
+          if (client.documentNumber) {
+            client.documentNumber = format.toDocument(client.documentNumber);
+          }
+          if (client.phoneNumber) {
+            client.phoneNumber = format.toPhone(client.phoneNumber);
           }
 
           return client;
@@ -207,7 +214,8 @@ const ClientForm = () => {
                         placeholder="Documento"
                         handleBlur={handleBlur}
                         handleChange={(e) => {
-                          e.target.value = e.target.value.replace(/\D/g, '').slice(0, 14);
+                          let val = e.target.value.replace(/\D/g, '').slice(0, 14);
+                          e.target.value = format.toDocument(val);
                           handleChange(e);
                         }}
                         value={values.documentNumber}

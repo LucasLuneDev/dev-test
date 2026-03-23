@@ -16,6 +16,28 @@ export const format = {
 
         return result;
     },
+    toDocument: (value: string) => {
+        if (!value) return value;
+        let v = value.replace(/\D/g, '');
+        if (v.length <= 11) {
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+            v = v.replace(/(\d{2})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1.$2');
+            v = v.replace(/(\d{3})(\d)/, '$1/$2');
+            v = v.replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+        }
+        return v;
+    },
+    toPhone: (value: string) => {
+        if (!value) return value;
+        let v = value.replace(/\D/g, '');
+        v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+        v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+        return v;
+    },
     toCNPJ: (value: string) => value && value.length === 14 ? value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : value,
     toMask: (value: string, mask: string) => {
         let result = '';
