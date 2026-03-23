@@ -13,11 +13,15 @@ import ClientService from "@/services/ClientService";
 import { TextFormFieldType } from "@/components/form/TextFormField/TextFormFieldType";
 import { ClientFilter } from "@/types/api/filters/ClientFilter";
 import { format } from "@/helpers/format";
+import { useImportSignalR } from "@/hooks/useImportSignalR";
 
 const ClientListing = () => {
     const navigate = useNavigate();
     const [date, setDate] = useState<Date>();
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useImportSignalR();
+
     const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -74,8 +78,8 @@ const ClientListing = () => {
                         { Header: "Nome", accessor: "firstName" },
                         { Header: "Sobrenome", accessor: "lastName" },
                         { Header: "Email", accessor: "email" },
-                        { Header: "Telefone", accessor: "phoneNumber", Cell: ({value}: any) => format.toPhone(value) },
-                        { Header: "Documento", accessor: "documentNumber", Cell: ({value}: any) => format.toDocument(value) },
+                        { Header: "Telefone", accessor: "phoneNumber", Cell: ({ value }: any) => format.toPhone(value) },
+                        { Header: "Documento", accessor: "documentNumber", Cell: ({ value }: any) => format.toDocument(value) },
                         {
                             Header: "Ações",
                             accessor: "id",

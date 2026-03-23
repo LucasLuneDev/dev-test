@@ -36,13 +36,15 @@ namespace WebApi
                         // you should restrict this to your frontend's actual domain.
                         builder.WithOrigins("http://localhost:3000")
                                .AllowAnyHeader()
-                               .AllowAnyMethod();
+                               .AllowAnyMethod()
+                               .AllowCredentials();
                     });
             });
 
             services.AddCustomFramework();
             services.AddApplication();
             services.AddControllers();
+            services.AddSignalR();
             services.AddPersistence();
 
             services.AddAuthentication(options =>
@@ -102,9 +104,9 @@ namespace WebApi
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApi v1"));
             }
 
-            app.UseCors();
-
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -113,6 +115,7 @@ namespace WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<WebApi.Hubs.ImportHub>("/api/hubs/import");
             });
         }
     }

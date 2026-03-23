@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.IO;
 using System.Threading;
@@ -15,11 +16,13 @@ namespace WebApi.BackgroundServices
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CsvProcessingBackgroundService> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<WebApi.Hubs.ImportHub> _hubContext;
 
-        public CsvProcessingBackgroundService(IServiceProvider serviceProvider, ILogger<CsvProcessingBackgroundService> logger)
+        public CsvProcessingBackgroundService(IServiceProvider serviceProvider, ILogger<CsvProcessingBackgroundService> logger, Microsoft.AspNetCore.SignalR.IHubContext<WebApi.Hubs.ImportHub> hubContext)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -58,6 +61,9 @@ namespace WebApi.BackgroundServices
 
             var lines = await File.ReadAllLinesAsync(filePath, stoppingToken);
 
+            int success = 0;
+            int errors = 0;
+
             for (int i = 1; i < lines.Length; i++)
             {
                 var line = lines[i];
@@ -90,13 +96,35 @@ namespace WebApi.BackgroundServices
                         try
                     {
                         await mediator.Send(request, stoppingToken);
+                        success++;
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError($"Erro ao salvar cliente da linha {i}: {ex.Message}");
+                        errors++;
                     }
                 }
             }
+
+            string status = "success";
+            if (success == 0 && errors > 0) 
+            {
+                status = "error";
+            } 
+            else if (success > 0 && errors > 0) 
+            {
+                status = "warning";
+            }
+
+            string finalMessage = errors > 0 
+                ? $"Processamento concluído. {success} clientes importados com sucesso, {errors} falharam." 
+                : $"Todos os {success} clientes foram importados com sucesso!";
+
+            await _hubContext.Clients.All.SendAsync("ReceiveImportUpdate", new 
+            { 
+                Status = status, 
+                Message = finalMessage 
+            }, stoppingToken);
         }
     }
 }
