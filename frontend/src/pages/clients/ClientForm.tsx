@@ -6,6 +6,7 @@ import { TextFormFieldType } from "@/components/form/TextFormField/TextFormField
 import { TextFormField } from "@/components/form/TextFormField/TextFormField";
 import Loader from "@/components/Loader";
 import { toastr } from "@/utils/toastr";
+import { errorHandling } from "@/utils/errorHandling";
 import ClientService from "@/services/ClientService";
 import ViacepService from "@/services/ViacepService";
 import { handlePhoneNumberChange } from "@/helpers/handlePhoneNumberChange";
@@ -39,7 +40,9 @@ const schemaValidation = yup.object().shape({
   lastName: yup.string().required("Sobrenome é obrigatório"),
   phoneNumber: yup.string().required("Telefone é obrigatório"),
   email: yup.string().email("Email inválido").required("Email é obrigatório"),
-  documentNumber: yup.string().required("Documento é obrigatório"),
+  documentNumber: yup.string()
+    .required("Documento é obrigatório")
+    .max(14, "O documento deve ter no máximo 14 dígitos"),
   birthDate: yup.string().required("Data de nascimento é obrigatória"),
   address: yup.object().shape({
     postalCode: yup.string().required("CEP é obrigatório"),
@@ -108,7 +111,7 @@ const ClientForm = () => {
 
       navigate(NAVIGATION_PATH.CLIENTS.LISTING.ABSOLUTE);
     } catch (err: any) {
-      toastr({ title: "Erro", text: err.message, icon: "error" });
+      errorHandling(err);
     }
   }
 
@@ -203,7 +206,10 @@ const ClientForm = () => {
                         required
                         placeholder="Documento"
                         handleBlur={handleBlur}
-                        handleChange={handleChange}
+                        handleChange={(e) => {
+                          e.target.value = e.target.value.replace(/\D/g, '').slice(0, 14);
+                          handleChange(e);
+                        }}
                         value={values.documentNumber}
                         formikError={errors.documentNumber}
                       />

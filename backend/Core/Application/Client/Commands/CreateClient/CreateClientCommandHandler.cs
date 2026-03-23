@@ -19,6 +19,14 @@ namespace Application.Client.Commands.CreateClient
 
         public async Task<Guid> Handle(CreateClientCommandRequest request, CancellationToken cancellationToken)
         {
+            var documentExists = await _context.Clients
+                .AnyAsync(c => c.DocumentNumber == request.DocumentNumber, cancellationToken);
+
+            if (documentExists)
+            {
+                throw new BadRequestException("Já existe um cliente cadastrado com este Documento.");
+            }
+
             var client = new Domain.Client(
                 request.FirstName,
                 request.LastName,

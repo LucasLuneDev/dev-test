@@ -8,6 +8,7 @@ import { ActionItemType, CrudActions } from "@/components/CrudActions";
 import { Link, useNavigate } from "react-router-dom";
 import { mountRoute } from "@/utils/mountRoute";
 import Loader from "@/components/Loader";
+import { errorHandling } from "@/utils/errorHandling";
 import ClientService from "@/services/ClientService";
 import { TextFormFieldType } from "@/components/form/TextFormField/TextFormFieldType";
 import { ClientFilter } from "@/types/api/filters/ClientFilter";
@@ -31,10 +32,7 @@ const ClientListing = () => {
             toastr({ title: "Arquivo importado com sucesso", icon: "success" });
 
         } catch (error: any) {
-            toastr({
-                title: error?.response?.data?.message || "Erro ao importar arquivo",
-                icon: "error"
-            });
+            errorHandling(error, "Erro ao importar arquivo");
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = "";
         }

@@ -19,6 +19,14 @@ namespace Application.Client.Commands.UpdateClient
 
         public async Task<Unit> Handle(UpdateClientCommandRequest request, CancellationToken cancellationToken)
         {
+            var documentExists = await _context.Clients
+                .AnyAsync(c => c.DocumentNumber == request.DocumentNumber && c.Id != request.Id, cancellationToken);
+
+            if (documentExists) 
+            {
+                throw new BadRequestException("Este Documento já pertence a outro cliente cadastrado.");
+            }
+
             var client = await _context.Clients
                 .Include(c => c.Address)
                 .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);

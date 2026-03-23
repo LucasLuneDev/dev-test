@@ -11,6 +11,7 @@ import { TextFormFieldType } from "@/components/form/TextFormField/TextFormField
 import { TextFormField } from "@/components/form/TextFormField/TextFormField";
 import Loader from "@/components/Loader";
 import { toastr } from "@/utils/toastr";
+import { errorHandling } from "@/utils/errorHandling";
 import UserService from "@/services/UserService";
 import yup from "@/utils/yup";
 
@@ -56,10 +57,7 @@ const UserForm = () => {
             }
             navigate(NAVIGATION_PATH.USERS.LISTING.ABSOLUTE);
         } catch (error: any) {
-            toastr({
-                title: error?.response?.data?.message || "Erro ao salvar usuário",
-                icon: "error",
-            });
+            errorHandling(error, "Erro ao salvar usuário");
         }
     }
 
