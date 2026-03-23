@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using Application.Client.Commands.UploadClientCsv;
+using System.IO;    
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -63,6 +65,28 @@ namespace WebApi.Controllers
             var response = await _mediator.Send(new ClientByIdQueryRequest { Id = id });
 
             return Ok(response);
+        }
+
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadCsv(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "Nenhum arquivo enviado." });
+            }
+
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+
+            var request = new UploadClientCsvCommandRequest
+            {
+                FileName = file.FileName,
+                FileContent = memoryStream.ToArray()
+            };
+
+            var filePath = await _mediator.Send(request);
+
+            return Ok(new { message = "Arquivo CSV recebido e salvo com sucesso.", filePath });
         }
     }
 }

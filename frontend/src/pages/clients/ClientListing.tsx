@@ -1,4 +1,5 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useRef } from "react";
+import { toastr } from "@/utils/toastr";
 import { Button, Card, Row } from "react-bootstrap";
 import { NAVIGATION_PATH } from "@/constants";
 import { Client } from "@/types/api/Client";
@@ -14,17 +15,51 @@ import { ClientFilter } from "@/types/api/filters/ClientFilter";
 const ClientListing = () => {
     const navigate = useNavigate();
     const [date, setDate] = useState<Date>();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.csv')) {
+            toastr({ title: "Apenas arquivos .csv são permitidos", icon: "error" });
+            return;
+        }
+
+        try {
+            await ClientService.uploadCsv(file);
+
+            toastr({ title: "Arquivo importado com sucesso", icon: "success" });
+
+        } catch (error: any) {
+            toastr({
+                title: error?.response?.data?.message || "Erro ao importar arquivo",
+                icon: "error"
+            });
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
 
     useEffect(() => {
         setDate(new Date());
     }, []);
 
     return <>
-        <Row style={{ justifyContent: "end", margin: "10px 0" }}>
+        <div className="d-flex justify-content-end align-items-center" style={{ margin: "10px 0", gap: "10px" }}>
+            <input
+                type="file"
+                accept=".csv"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+            />
+            <Button variant="primary" style={{ maxWidth: "fit-content" }} onClick={() => fileInputRef.current?.click()}>
+                Importar CSV
+            </Button>
             <Link to={NAVIGATION_PATH.CLIENTS.CREATE.ABSOLUTE}>
-                <Button style={{ maxWidth: "fit-content", float: "right" }}>Adicionar</Button>
+                <Button style={{ maxWidth: "fit-content" }}>Adicionar</Button>
             </Link>
-        </Row>
+        </div>
         <Card >
             <Card.Title></Card.Title>
             <Card.Header>

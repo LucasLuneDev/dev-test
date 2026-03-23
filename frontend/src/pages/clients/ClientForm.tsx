@@ -7,6 +7,7 @@ import { TextFormField } from "@/components/form/TextFormField/TextFormField";
 import Loader from "@/components/Loader";
 import { toastr } from "@/utils/toastr";
 import ClientService from "@/services/ClientService";
+import ViacepService from "@/services/ViacepService";
 import { handlePhoneNumberChange } from "@/helpers/handlePhoneNumberChange";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ReactQueryKeys } from "@/constants/ReactQueryKeys";
@@ -60,6 +61,10 @@ const ClientForm = () => {
         if (id) {
           const client = await ClientService.getById(id);
 
+          if (client.address?.postalCode) {
+            client.address.postalCode = client.address.postalCode.replace(/(\d{5})(\d{3})/, '$1-$2');
+          }
+
           if (client.birthDate) {
             client.birthDate = client.birthDate.split("T")[0].split("-").reverse().join("/");
           }
@@ -70,6 +75,16 @@ const ClientForm = () => {
       },
     },
   });
+
+  const handleCepBlur = async (cep: string, setFieldValue: any) => {
+    const data = await ViacepService.getAddressByCep(cep);
+    if (data && !data.erro) {
+      setFieldValue("address.addressLine", data.logradouro);
+      setFieldValue("address.neighborhood", data.bairro);
+      setFieldValue("address.city", data.localidade);
+      setFieldValue("address.state", data.uf);
+    }
+  };
 
   async function onSubmit(values: Client) {
     try {
@@ -122,6 +137,7 @@ const ClientForm = () => {
                 values,
                 isSubmitting,
                 isValid,
+                setFieldValue
               }) => (
                 <Form noValidate onSubmit={handleSubmit}>
                   <Row>
@@ -215,8 +231,15 @@ const ClientForm = () => {
                         label="CEP"
                         required
                         placeholder="CEP"
+                        mask="##.###-###"
                         handleBlur={handleBlur}
-                        handleChange={handleChange}
+                        handleChange={(e) => {
+                          handleChange(e);
+                          const cleanCep = e.target.value.replace(/\D/g, '');
+                          if (cleanCep.length === 8) {
+                            handleCepBlur(cleanCep, setFieldValue);
+                          }
+                        }}
                         value={values.address.postalCode}
                         formikError={errors.address?.postalCode}
                       />

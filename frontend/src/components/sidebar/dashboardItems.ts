@@ -5,9 +5,16 @@ import { FaRegAddressBook } from "react-icons/fa";
 
 // PAGES
 const CLIENTS_PAGE: SidebarItemsType = { href: NAVIGATION_PATH.CLIENTS.LISTING.ABSOLUTE, title: "Clientes", icon: FaRegAddressBook }
+const USERS_PAGE: SidebarItemsType = { href: NAVIGATION_PATH.USERS.LISTING.ABSOLUTE, title: "Usuários", icon: FaRegAddressBook }
 
 export const SIDEBAR = {
     [UserProfile.Administrator]: [
+        {
+            title: "Gestão",
+            pages: [CLIENTS_PAGE, USERS_PAGE]
+        }
+    ],
+    [UserProfile.Operator]: [
         {
             title: "Gestão",
             pages: [CLIENTS_PAGE]
